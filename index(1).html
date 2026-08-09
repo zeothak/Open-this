@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Will You Go Out With Me?</title>
+<style>
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #ffafd2, #ffd8e8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    touch-action: manipulation;
+}
+
+.card {
+    width: 90vw;
+    max-width: 520px;
+    min-height: 380px;
+    padding: 38px 22px;
+    border-radius: 28px;
+    background: rgba(255,255,255,.88);
+    box-shadow: 0 18px 50px rgba(180,55,110,.2);
+    text-align: center;
+    position: relative;
+    z-index: 10;
+}
+
+h1 {
+    color: #d63384;
+    font-size: clamp(31px, 8vw, 50px);
+    margin: 15px 0 30px;
+    line-height: 1.12;
+}
+
+.buttons {
+    position: relative;
+    width: 100%;
+    height: 190px;
+}
+
+button {
+    position: absolute;
+    border: 0;
+    border-radius: 999px;
+    min-width: 120px;
+    min-height: 54px;
+    padding: 14px 25px;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: width .3s ease, height .3s ease, font-size .3s ease;
+}
+
+#yes {
+    background: #ff4f9a;
+    color: white;
+    left: 50%;
+    top: 35px;
+    transform: translateX(-115%);
+    z-index: 20;
+    box-shadow: 0 8px 20px rgba(255,79,154,.3);
+}
+
+#no {
+    background: #eeeeee;
+    color: #555;
+    left: 50%;
+    top: 35px;
+    transform: translateX(15%);
+    z-index: 30;
+}
+
+/* Keep both buttons physically separated while Yes grows */
+#yes.growing {
+    left: 10%;
+    transform: none;
+}
+
+#no.growing {
+    left: 70%;
+    transform: none;
+}
+
+.heart {
+    position: fixed;
+    top: -45px;
+    pointer-events: none;
+    z-index: 1;
+    animation: fall linear forwards;
+    opacity: .8;
+    user-select: none;
+}
+
+@keyframes fall {
+    0% {
+        transform: translateY(-50px) rotate(0deg);
+        opacity: 0;
+    }
+    10% { opacity: .85; }
+    100% {
+        transform: translateY(110vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+.success {
+    display: none;
+}
+
+.success h1 {
+    margin-bottom: 15px;
+}
+
+.success p {
+    color: #b02a6b;
+    font-size: 21px;
+    margin: 0;
+}
+
+.big-heart {
+    font-size: 78px;
+    animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+    to { transform: scale(1.15); }
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <div id="question">
+        <h1>Will you go out with me? 💕</h1>
+
+        <div class="buttons">
+            <button id="yes">Yes 💖</button>
+            <button id="no">No 😢</button>
+        </div>
+    </div>
+
+    <div id="success" class="success">
+        <div class="big-heart">💗</div>
+        <h1>Yay!!! 🥰</h1>
+        <p>I knew you would say yes! ❤️</p>
+    </div>
+
+</div>
+
+<script>
+const yes = document.getElementById("yes");
+const no = document.getElementById("no");
+const question = document.getElementById("question");
+const success = document.getElementById("success");
+
+let noCount = 0;
+
+function handleNo(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    noCount++;
+
+    /*
+      Instead of transform: scale(), change the actual button size.
+      This prevents the enlarged Yes button from creating an invisible
+      tap-blocking area on iPhone.
+    */
+
+    const yesWidth = Math.min(120 + noCount * 45, 340);
+    const yesHeight = Math.min(54 + noCount * 20, 150);
+    const yesFont = Math.min(20 + noCount * 3, 42);
+
+    yes.style.width = yesWidth + "px";
+    yes.style.height = yesHeight + "px";
+    yes.style.fontSize = yesFont + "px";
+
+    // Move Yes gradually toward the centre as it gets bigger.
+    if (noCount >= 2) {
+        yes.classList.add("growing");
+        yes.style.left = Math.max(5, 22 - noCount * 1.5) + "%";
+    }
+
+    // Keep No comfortably tappable.
+    no.classList.add("growing");
+    no.style.left = Math.min(78, 70 + noCount * 1.2) + "%";
+
+    if (noCount >= 4) {
+        yes.textContent = "YES!!! 💖";
+    }
+
+    if (noCount >= 7) {
+        yes.style.width = "90%";
+        yes.style.height = "130px";
+        yes.style.fontSize = "38px";
+        yes.style.left = "5%";
+        yes.style.top = "0";
+        no.style.top = "145px";
+        no.style.left = "50%";
+        no.style.transform = "translateX(-50%)";
+    }
+}
+
+function handleYes(event) {
+    event.preventDefault();
+    question.style.display = "none";
+    success.style.display = "block";
+}
+
+// Click works on desktop; pointer events work reliably on iPhone.
+no.addEventListener("pointerup", handleNo);
+yes.addEventListener("pointerup", handleYes);
+
+function createHeart() {
+    const heart = document.createElement("div");
+    heart.className = "heart";
+    heart.textContent = ["💗", "💕", "💖", "💘", "❤️", "💓"][Math.floor(Math.random() * 6)];
+
+    heart.style.left = Math.random() * 100 + "vw";
+    heart.style.fontSize = (16 + Math.random() * 25) + "px";
+    heart.style.animationDuration = (4 + Math.random() * 6) + "s";
+
+    document.body.appendChild(heart);
+
+    setTimeout(() => heart.remove(), 11000);
+}
+
+setInterval(createHeart, 350);
+
+for (let i = 0; i < 12; i++) {
+    setTimeout(createHeart, i * 180);
+}
+</script>
+
+</body>
+</html>
